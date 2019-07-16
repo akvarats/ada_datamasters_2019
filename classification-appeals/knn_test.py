@@ -2,6 +2,8 @@ import nltk
 import csv
 import gensim
 import pymorphy2
+import copy
+import random
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import pairwise_distances
@@ -102,6 +104,13 @@ if __name__ == "__main__":
 
     print("Reading corpus")
     corpus = read_corpus("input/NashDomRyazan-29-03-2019.csv")
+
+    # выцепляем какую-то одну запись
+    test_row_index = random.randint(0, len(corpus) - 1)
+    test_row = corpus[random.randint(0, len(corpus) - 1)]
+
+    test_corpus = copy.copy(corpus)
+    del test_corpus[test_row_index]
 
     # собираем список категорий
     targets = []
