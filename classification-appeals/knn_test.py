@@ -12,7 +12,7 @@ nltk.download('punkt')
 
 print("Loading word2vec to gensim")
 
-#model = gensim.models.KeyedVectors.load_word2vec_format("models/180/model.bin", binary=True)
+model = gensim.models.KeyedVectors.load_word2vec_format("models/180/model.bin", binary=True)
 
 morph = pymorphy2.MorphAnalyzer()
 
@@ -74,6 +74,13 @@ def get_distance_matrix():
     distance = lambda x, y: x + y if x != y else 0
 
     return pairwise_distances(X, metric=distance)
+
+
+def get_distance_matrix_for_corpus(corpus):
+    """ """
+    X = [[i] for i in range(0, len(corpus))]
+
+    distance = lambda x, y: model.wmdistance(corpus[x]["cleaned_rusvectores_words"], corpus[y]["cleaned_rusvectores_words"])
 
 
 def read_corpus(file_path):
