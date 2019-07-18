@@ -11,6 +11,8 @@ class KNNPrediction(object):
         self._category = None
         self._probable_categories = []
 
+        self._predicted_themes = []
+
     @property
     def category(self):
         return self._category
@@ -28,6 +30,13 @@ class KNNPrediction(object):
         self._probable_categories = value
 
 
+    @property
+    def predicted_themes(self):
+        return self._predicted_themes
+
+    @
+
+
 class KNNModel(object):
 
     def __init__(self, predictor, word2vec):
@@ -40,6 +49,9 @@ class KNNModel(object):
 
         self._categories = None
         self._targets_category = None
+
+        self._themes = None
+        self._targets_theme = None
 
     @property
     def corpus_model(self):
@@ -61,11 +73,10 @@ class KNNModel(object):
         """
         self._corpus_model = corpus_model
         self._prepare_categories()
+        self._prepare_themes()
 
         self._knn = KNeighborsClassifier(n_neighbors=10, metric="precomputed")
         self._knn.fit(self.distances, self._targets_category)
-
-        print(len(self._categories))
 
     def predict(self, text):
 
@@ -102,11 +113,24 @@ class KNNModel(object):
                 self._categories[row["category"]] = category_index
             self._targets_category.append(self._categories[row["category"]])
 
+    def _prepare_themes(self):
+        """ """
+        self.
+
     def _category_name_by_index(self, category_index):
         result = None
 
         for cname, cindex in self._categories.items():
             if cindex == category_index:
                 result = cname
+                break
+        return result
+
+    def _theme_name_by_index(self, theme_index):
+        result = None
+
+        for tname, tindex in self._themes.items():
+            if tindex == theme_index:
+                result = tname
                 break
         return result
