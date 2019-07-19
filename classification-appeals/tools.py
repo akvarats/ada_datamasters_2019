@@ -84,3 +84,10 @@ def get_distance_matrix_for_corpus(corpus, word2vec_model):
     )
 
     return pairwise_distances(X, metric=distance, n_jobs=-1)
+
+
+def get_chunks(N, chunk_size):
+    """ 
+    Возвращает список кортежей (index_from, index_to) для заданного массива [0, 1, ..., N]
+    """
+    return [(i, min(i + chunk_size, N)) for i in range(0, N, chunk_size)]

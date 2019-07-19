@@ -8,7 +8,7 @@ from multiprocessing import Pool
 
 from corpus_model import CorpusModel
 from knn_model import KNNModel
-from tools import get_morph_predictor, get_word2vec_model
+from tools import get_morph_predictor, get_word2vec_model, get_chunks
 
 
 def estimate_model_on_range(model_path, index_from, index_to):
@@ -35,7 +35,7 @@ def estimate_model_on_range(model_path, index_from, index_to):
     word2vec_model = get_word2vec_model(corpus_model.meta.get("word2vec"))
 
     sys.stdout.write("\n--------------------------------------------------------------------------------\n")
-    sys.stdout.write("Создаем лог-файл\n")
+    sys.stdout.write("Создаем папку для лог файла\n")
     sys.stdout.write("--------------------------------------------------------------------------------\n")
     logfile_folder = os.path.join("logs", "")
     os.makedirs(logfile_folder, exist_ok=True)
@@ -44,7 +44,7 @@ def estimate_model_on_range(model_path, index_from, index_to):
     subcorrect = 0
     incorrect = 0
 
-    for doc_index in index_from, index_to:
+    for doc_index in range(index_from, index_to):
         corpus_model_copy = copy.deepcopy(corpus_model)
 
         corpus_model_copy.distances = np.delete(corpus_model_copy.distances, doc_index, axis=0)
@@ -73,9 +73,19 @@ def estimate_model_on_range(model_path, index_from, index_to):
         print("Wrong: {0}".format(incorrect))
 
 
-def estimate_model_range(model_path, index_from, index_to):
+def estimate_model(model_path):
     """ Оценивает работу по рейнджу записей из модели корпуса """
-    pass
+    
+    corpus_model = CorpusModel().load(model_path)
+
+    doc_chunks = get_chunks(len(corpus_model.corpus), chunk_size=15)
+
+    def parallel_function (doc_chunk): 
+        estimate_model_on_range(model_path, doc_chunk[0], doc_chunk[1])
+
+    with Pool() as p:
+        p.map(parallel_function, doc_chunks)
+
 
 
 if __name__ == "__main__":
