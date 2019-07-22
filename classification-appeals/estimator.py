@@ -2,47 +2,33 @@ import sys
 import os
 import argparse
 import copy
+import datetime
 import numpy as np
+import json
 
 from multiprocessing import Pool
 
 from corpus_model import CorpusModel
 from knn_model import KNNModel
-from tools import get_morph_predictor, get_word2vec_model, get_chunks
+from tools import get_morph_predictor, get_word2vec_model, get_chunks, normalized_executor
 
 
-def estimate_model_on_range(model_path, index_from, index_to):
+def estimate_model_on_range(model_path, log_path, index_from, index_to):
     """
 
     :param model:
     :return:
     """
 
-    sys.stdout.write("\n--------------------------------------------------------------------------------\n")
-    sys.stdout.write("Загружаем модель корпуса\n")
-    sys.stdout.write("--------------------------------------------------------------------------------\n")
-
     corpus_model = CorpusModel().load(model_path)
-
-    sys.stdout.write("\n--------------------------------------------------------------------------------\n")
-    sys.stdout.write("Загрузка морфологического предиктора\n")
-    sys.stdout.write("--------------------------------------------------------------------------------\n")
     predictor = get_morph_predictor()
-
-    sys.stdout.write("\n--------------------------------------------------------------------------------\n")
-    sys.stdout.write("Загрузка word2vec модели\n")
-    sys.stdout.write("--------------------------------------------------------------------------------\n")
     word2vec_model = get_word2vec_model(corpus_model.meta.get("word2vec"))
-
-    sys.stdout.write("\n--------------------------------------------------------------------------------\n")
-    sys.stdout.write("Создаем папку для лог файла\n")
-    sys.stdout.write("--------------------------------------------------------------------------------\n")
-    logfile_folder = os.path.join("logs", "")
-    os.makedirs(logfile_folder, exist_ok=True)
 
     correct = 0
     subcorrect = 0
     incorrect = 0
+
+    log_data = []
 
     for doc_index in range(index_from, index_to):
         corpus_model_copy = copy.deepcopy(corpus_model)
@@ -57,35 +43,92 @@ def estimate_model_on_range(model_path, index_from, index_to):
 
         prediction = knn.predict(corpus_model.corpus[doc_index]["orig_text"])
 
-        if prediction.category == corpus_model.corpus[doc_index]["category"]:
-            correct += 1
+        # оценка предсказанной категории
+        category_prediction_status = None
+        if prediction.predicted_category == corpus_model.corpus[doc_index]["category"]:
+            category_prediction_status = "success"
         else:
-            if corpus_model.corpus[doc_index]["category"] in [p[0] for p in prediction.probable_categories[0:3]]:
-                subcorrect += 1
+            if corpus_model.corpus[doc_index]["category"] in [p[0] for p in prediction.top3_predicted_categories]:
+                category_prediction_status = "top3"
             else:
-                incorrect += 1
+                category_prediction_status = "fail"
 
-        print("----------------------")
-        print("{0} -> {1}".format(corpus_model.corpus[doc_index]["category"], [p[0] for p in prediction.probable_categories[0:3]]))
+        # оценка предсказанной темы
+        theme_prediction_status = None
+        if prediction.predicted_theme == corpus_model.corpus[doc_index]["theme"]:
+            theme_prediction_status = "success"
+        else:
+            if corpus_model.corpus[doc_index]["theme"] in [p[0] for p in prediction.top3_predicted_themes]:
+                theme_prediction_status = "top3"
+            else:
+                theme_prediction_status = "fail"
 
-        print("Correct: {0}".format(correct))
-        print("In top 3: {0}".format(subcorrect))
-        print("Wrong: {0}".format(incorrect))
+        # оценка предсказанного исполнителя
+        executor_prediction_status = None
+        if prediction.predicted_executor == normalized_executor(corpus_model.corpus[doc_index]["executor"]):
+            executor_prediction_status = "success"
+        else:
+            if normalized_executor(corpus_model.corpus[doc_index]["executor"]) in [p[0] for p in prediction.top3_predicted_executors]:
+                executor_prediction_status = "top3"
+            else:
+                executor_prediction_status = "fail"
+
+        # запись в лог
+
+        log_data.append(dict(
+            source=dict(
+                id=corpus_model.corpus[doc_index]["id"],
+                text=corpus_model.corpus[doc_index]["orig_text"],
+                category=corpus_model.corpus[doc_index]["category"],
+                theme=corpus_model.corpus[doc_index]["theme"],
+                executor=corpus_model.corpus[doc_index]["executor"],
+            ),
+            prediction=dict(
+                category=dict(
+                    predicted=prediction.predicted_category,
+                    top3=prediction.top3_predicted_categories,
+                    status=category_prediction_status,
+                ),
+                executor=dict(
+                    predicted=prediction.predicted_executor,
+                    top3=prediction.top3_predicted_executors,
+                    status=executor_prediction_status,
+                ),
+                theme=dict(
+                    predicted=prediction.predicted_theme,
+                    top3=prediction.top3_predicted_themes,
+                    status=theme_prediction_status,
+                )
+            )
+        ))
+
+        with open(os.path.join(log_path, "{0}_{1}.json".format(index_from, index_to)), "wt") as f:
+            f.write(json.dumps(log_data, ensure_ascii=False, indent=2))
+
+
+def parallel_estimation(data):
+    estimate_model_on_range(data[0], data[1], data[2], data[3])
 
 
 def estimate_model(model_path):
     """ Оценивает работу по рейнджу записей из модели корпуса """
-    
+
+    # Готовим задания по анализу ло
     corpus_model = CorpusModel().load(model_path)
+    doc_chunks = get_chunks(len(corpus_model.corpus), chunk_size=200)
 
-    doc_chunks = get_chunks(len(corpus_model.corpus), chunk_size=15)
+    # Создаем папку, в которую положим результаты
+    base_logs_path = "logs"
+    logs_count = len(os.listdir(base_logs_path))
 
-    def parallel_function (doc_chunk): 
-        estimate_model_on_range(model_path, doc_chunk[0], doc_chunk[1])
+    logfile_folder = os.path.join(base_logs_path, "{0}_{1}".format(model_path.replace("/", "_"), "0000{}".format(logs_count + 1)[-4:]))
+    os.makedirs(logfile_folder, exist_ok=True)
+
+    chunk_data = [(model_path, logfile_folder, doc_chunk[0], doc_chunk[1]) for doc_chunk in doc_chunks]
+
 
     with Pool() as p:
-        p.map(parallel_function, doc_chunks)
-
+        p.map(parallel_estimation, chunk_data)
 
 
 if __name__ == "__main__":

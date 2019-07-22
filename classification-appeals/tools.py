@@ -91,3 +91,18 @@ def get_chunks(N, chunk_size):
     Возвращает список кортежей (index_from, index_to) для заданного массива [0, 1, ..., N]
     """
     return [(i, min(i + chunk_size, N)) for i in range(0, N, chunk_size)]
+
+
+def normalized_executor(executor_name):
+    """ """
+    result = executor_name
+
+    if ";" in executor_name:
+        result = executor_name.split(";")[0]
+
+    lower_name = result.lower()
+
+    if "администрация" in lower_name or "префектура" in lower_name:
+        result = "Администрация/префектура района/города/округа"
+
+    return result
