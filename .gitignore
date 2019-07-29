@@ -1,5 +1,11 @@
 .idea/
 classification-appeals/.venv/
 classification-appeals/venv/
-classification-appeals/models/
+classification-appeals/models/180
+classification-appeals/models/182
+classification-appeals/models/185
+classification-appeals/models/md1
+classification-appeals/models/md2
 classification-appeals/logs/
+*.pyc
+*-checkpoint.ipynb
