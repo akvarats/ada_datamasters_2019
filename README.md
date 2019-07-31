@@ -2,10 +2,16 @@
 
 Состав команды: Кварацхелия А.Г, Рахимов Д.Ф., Мангушева А.Р.
 
-## Презентация
+## Общее описание логики работы решения
+    * На основе документов тестового набора строится матрица расстояний с использованием word2wec [1] и Word Mover's Distance [2];    
+    * Для каждого нового документа расчитываем вектор расстояний от данного документа до каждого документа из обучающего набора.
+    * Применяем классификатор K-ближайших соседей с параметром количества соседей, равным 10-и.
 
+[1] Tomas Mikolov, Kai Chen, Greg Corrado, Jeffrey Dean Efficient Estimation of Word Representations in Vector Space https://arxiv.org/abs/1301.3781
 
-## Результаты
+[2] Matt Kusner M, Yu Sun, Nicholas Kolkin, Kilian Weinberger "From Word Embeddings To Document Distances" http://mkusner.github.io/publications/WMD.pdf
+
+Результаты
 
 |        |   Категории   | Исполнители  |    Темы     |
 | ------ |:-------------:|:------------:|------------:|
@@ -13,7 +19,17 @@
 | Топ-3  |  411 (23.0%)  |  357 (20.0%) |  80 (15.7%) |
 | Ошибка |  301 (16.8%)  |  304 (17.0%) | 716 (40.0%) |
 
-## Развёртывание решения
+## Требования к окружению для запуска продукта
+
+
+Кроссплатформенное решение: Linux, Windows, macOS
+Язык программирования: Python 3.6
+Библиотеки и компоненты: NTLK, Gensim, RNNmorph (TensorFlow), Scikit-learn, семантические модели русского языка с 
+https://rusvectores.org/ru/models/ (ruscorpora_upos_cbow_300_20_2019)
+
+
+
+## Сценарий сборки и запуска проекта
 
 [Установить docker](https://docs.docker.com/install/)
 
@@ -22,6 +38,13 @@
 Склонировать репозиторий
 
 Перейти в корневую директорию репозитория
+
+Скачать модель `ruscorpora_upos_cbow_300_20_2019` c [rusvectores.org](https://rusvectores.org/ru/models/)
+и распаковать содержащиеся файлы в поддиректорию models/180
+
+```
+mkdir -p models/180; wget http://vectors.nlpl.eu/repository/11/180.zip -O tmp.zip; unzip -o -d models/180 tmp.zip; rm -rf tmp.zip
+```
 
 Собрать и запустить
 ```
@@ -36,19 +59,23 @@ docker-compose down
 
 Проверить можно, перейдя в браузере на `http://127.0.0.1`
 
+## Примеры использования
 
-## API
+### Программное решение
+![Alt Text](https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif)
 
-### Запрос
+### API сервиса
+
+#### Запрос
 
 ```POST /classify```
 
-### Заголовки
+#### Заголовки
 
 ```Content-Type: application/json```
 
 
-### Пример запроса
+#### Пример запроса
 
 ```
 curl --request POST \
@@ -72,7 +99,7 @@ User-Agent: HTTPie/0.9.4
 }
 ```
 
-### Пример ответа
+#### Пример ответа
 
 ```
 HTTP/1.1 200 OK
