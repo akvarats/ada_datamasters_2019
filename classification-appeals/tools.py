@@ -1,3 +1,4 @@
+import os
 import gensim
 import string
 import nltk
@@ -13,6 +14,7 @@ def get_morph_predictor():
 
 
 def get_word2vec_model(model_filepath):
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     return gensim.models.KeyedVectors.load_word2vec_format(model_filepath, binary=True)
 
 
