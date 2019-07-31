@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Автоматическая классификация обращений граждан</title>
+    <script src="/static/vue-2.6.10.min.js"></script>
+    <script src="/static/jquery-3.4.1.min.js"></script>
+    <link href="/static/styles.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<img src="/static/loading.gif" id="loading"/>
+<div id="appeals-app">
+    <fieldset>
+        <label for="appeal-text">Введите текст Вашего обращения:</label>
+        <textarea id="appeal-text" v-model="appealText"></textarea>
+        <button v-on:click="sendAppealText">Классифицировать</button>
+    </fieldset>
+
+    <fieldset>
+        <h1>Результаты классификации</h1>
+        <label for="theme">Тема - ключевые факты из текста обращения</label>
+        <select id="theme" required size="3">
+            <option v-for="theme in topThemes">{{ theme }}</option>
+        </select>
+
+        <label for="category">Категория</label>
+        <select id="category" required size="3">
+            <option v-for="category in topCategories">{{ category }}</option>
+        </select>
+
+        <label for="executor">Предполагаемый исполнитель</label>
+        <select id="executor" required size="3">
+            <option v-for="executor in topExecutors">{{ executor }}</option>
+        </select>
+    </fieldset>
+</div>
+<script>
+
+    let vm = new Vue({
+        el: '#appeals-app',
+        data: {
+            appealText: '',
+            url: '/classify',
+            topThemes: [],
+            topCategories: [],
+            topExecutors: []
+        },
+        methods: {
+            sendAppealText: function () {
+                $('#loading').show();
+                vm.topThemes = [];
+                vm.topCategories = [];
+                vm.topExecutors = [];
+                $.ajax({
+                    type: "POST",
+                    url: this.url,
+                    data: JSON.stringify({"appeal_text": this.appealText}),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+
+                })
+                    .done(function (r) {
+                        for (let i = 0; i < r.top3_themes.length; i++) {
+                            Vue.set(vm.topThemes, i, r.top3_themes[i][0] + ' — ' + r.top3_themes[i][1]);
+                        }
+                        for (let i = 0; i < r.top3_categories.length; i++) {
+                            Vue.set(vm.topCategories, i, r.top3_categories[i][0] + ' — ' + r.top3_categories[i][1]);
+                        }
+
+                        for (let i = 0; i < r.top3_executors.length; i++) {
+                            Vue.set(vm.topExecutors, i, r.top3_executors[i][0] + ' — ' + r.top3_executors[i][1]);
+                        }
+                    })
+                    .fail(function () {
+                        alert("error");
+                    })
+                    .always(function () {
+                        $('#loading').hide();
+                    });
+                ;
+
+            }
+        }
+    })
+
+    /*
+        new Vue({
+            el: '#app',
+            data: {
+                // appeal: '12 апреля 2017 года на ул. 7-й Мервинский и 8-й Мервинский проезд спилили как здоровые, так и полусухие (дававшие листву не на всех ветвях) деревья. Считаю необходимо компенсировать спиленные деревья посадкой новых, иначе если так постоянно спиливать под корень, нам нечем будет дышать и экология города пострадает, особенно в спальных и в районах частной застройкой. Понятно, что спиливали ради \\"спасения\\" линий электропередач, и в случае повреждения ЛЭП это будет стоить немалых затрат. Список улиц где были спилены деревья: 7-ой Мервинский проезд, дома с №1 по №33; 8-ой Мервинский проезд, дома с №12 по №36. 7-ой Мервинский проезд, дома с №6 по №40; Мервинская, дом №51. Место для посадки предлагаю организовать в безопасной зоне от ЛЭП в проездах к домам по ул. Вишнёвой 21 кор. 1, 21 кор. 2, 21 кор. 4 (21 кор. 6 - пристройка). Там есть уже посадки, но некоторые уже погибли и засохли. Необходимо посадить как минимум 3-5 деревьев. Надеюсь на понимание, кроме нас о природе никто не позаботится.',
+                // category: '',
+                // topThemes: ['aa', 'bb', 'cc'],
+                // executor: '',
+                // url: "/classify",
+                message: 'Old value'
+            },
+            methods: {
+                setNewValue: function (message) {
+                    this.message = 'New value';
+                }
+            }
+        })
+    */
+
+
+</script>
+
+</body>
+</html>

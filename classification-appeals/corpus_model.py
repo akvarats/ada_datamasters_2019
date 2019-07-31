@@ -27,7 +27,7 @@ class CorpusModel(object):
         return self._meta
 
     def load(self, model_folder):
-
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
         meta_file_path = os.path.join(model_folder, "meta.json")
         corpus_file_path = os.path.join(model_folder, "corpus.json")
         distance_file_path = os.path.join(model_folder, "distances.npy")
