@@ -28,13 +28,15 @@ label {
     font-size: 17px;
 }
 
-textarea {
-    height: 15em;
+textarea{
     width: 100%;
     margin-bottom: 15px;
     border: None;
     padding: 10px;
 
+}
+#appeal-text {
+    height: 15em;
 }
 
 textarea:focus {
@@ -62,19 +64,6 @@ h1 {
     margin: 10px 0;
 }
 
-select {
-    border: none;
-    font-size: 14px;
-    height: auto;
-    margin: 0;
-    margin-bottom: 20px;
-    outline: 0;
-    padding: 6px;
-    border-radius: 2px;
-    width: 100%;
-    overflow-y: auto;
-
-}
 
 #loading{
   display: none;

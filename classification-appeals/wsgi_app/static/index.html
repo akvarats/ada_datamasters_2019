@@ -11,7 +11,8 @@
 <img src="/static/loading.gif" id="loading"/>
 <div id="appeals-app">
     <fieldset>
-        <label for="appeal-text">Введите текст Вашего обращения:</label>
+        <h1>Автоматическая классификация обращений граждан</h1>
+        <label for="appeal-text">Введите текст обращения:</label>
         <textarea id="appeal-text" v-model="appealText"></textarea>
         <button v-on:click="sendAppealText">Классифицировать</button>
     </fieldset>
@@ -19,19 +20,11 @@
     <fieldset>
         <h1>Результаты классификации</h1>
         <label for="theme">Тема - ключевые факты из текста обращения</label>
-        <select id="theme" required size="3">
-            <option v-for="theme in topThemes">{{ theme }}</option>
-        </select>
-
+        <textarea id="theme" rows=3 v-model="topThemes"></textarea>
         <label for="category">Категория</label>
-        <select id="category" required size="3">
-            <option v-for="category in topCategories">{{ category }}</option>
-        </select>
-
+        <textarea id="category" rows=3 v-model="topCategories"></textarea>
         <label for="executor">Предполагаемый исполнитель</label>
-        <select id="executor" required size="3">
-            <option v-for="executor in topExecutors">{{ executor }}</option>
-        </select>
+        <textarea id="executor" rows=3 v-model="topExecutors"></textarea>
     </fieldset>
 </div>
 <script>
@@ -41,16 +34,16 @@
         data: {
             appealText: '',
             url: '/classify',
-            topThemes: [],
-            topCategories: [],
-            topExecutors: []
+            topThemes: '',
+            topCategories: '',
+            topExecutors: ''
         },
         methods: {
             sendAppealText: function () {
                 $('#loading').show();
-                vm.topThemes = [];
-                vm.topCategories = [];
-                vm.topExecutors = [];
+                vm.topThemes = '';
+                vm.topCategories = '';
+                vm.topExecutors = '';
                 $.ajax({
                     type: "POST",
                     url: this.url,
@@ -60,16 +53,19 @@
 
                 })
                     .done(function (r) {
+                        var themes = [], categories = [], executors = [];
                         for (let i = 0; i < r.top3_themes.length; i++) {
-                            Vue.set(vm.topThemes, i, r.top3_themes[i][0] + ' — ' + r.top3_themes[i][1]);
+                            themes.push(r.top3_themes[i][0] + ' — ' + r.top3_themes[i][1]);
                         }
+                        vm.topThemes = themes.join(String.fromCharCode(13, 10));
                         for (let i = 0; i < r.top3_categories.length; i++) {
-                            Vue.set(vm.topCategories, i, r.top3_categories[i][0] + ' — ' + r.top3_categories[i][1]);
+                            categories.push(r.top3_categories[i][0] + ' — ' + r.top3_categories[i][1]);
                         }
-
+                        vm.topCategories = categories.join(String.fromCharCode(13, 10));
                         for (let i = 0; i < r.top3_executors.length; i++) {
-                            Vue.set(vm.topExecutors, i, r.top3_executors[i][0] + ' — ' + r.top3_executors[i][1]);
+                            executors.push(r.top3_executors[i][0] + ' — ' + r.top3_executors[i][1]);
                         }
+                        vm.topExecutors = executors.join(String.fromCharCode(13, 10));
                     })
                     .fail(function () {
                         alert("error");

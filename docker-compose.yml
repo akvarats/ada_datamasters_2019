@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+    python:
+        restart: always
+        build:
+            context: .
+            dockerfile: docker/python/Dockerfile
+        volumes:
+            - ./classification-appeals:/srv/www/classification-appeals
+        expose:
+          - 8001
+        command: "gunicorn -b 0.0.0.0:8001 wsgi_app.appeals:app"
+    nginx:
+        restart: always
+        image: nginx:latest
+        ports:
+          - 80:8080
+        volumes:
+            - ./classification-appeals/wsgi_app/static:/srv/www/classification-appeals/wsgi_app/static
+            - ./classification-appeals/logs:/srv/www/classification-appeals/logs
+            - ./docker/nginx:/etc/nginx/conf.d
+        depends_on:
+            - python
+
