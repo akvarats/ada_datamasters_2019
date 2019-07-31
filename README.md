@@ -34,3 +34,96 @@ docker-compose up -d
 docker-compose down
 ```
 
+Проверить можно, перейдя в браузере на `http://127.0.0.1`
+
+
+##API
+
+###Запрос
+
+```POST /classify```
+
+###Заголовки
+
+```Content-Type: application/json```
+
+
+###Пример запроса
+
+```
+curl --request POST \
+	--header "Content-Type: application/json" \
+	--data '{"appeal_text":"Сегодня, выйдя из дома, обнаружила следующую картину. Около подъезда очень много неубранного снега, наледь около входной двери."}' \
+	127.0.0.1/classify	
+```
+
+```
+POST /classify HTTP/1.1
+Accept: application/json
+Accept-Encoding: gzip, deflate
+Connection: keep-alive
+Content-Length: 252
+Content-Type:  application/json
+Host: localhost
+User-Agent: HTTPie/0.9.4
+
+{
+    "appeal_text": "Сегодня, выйдя из дома, обнаружила следующую картину. Около подъезда очень много неубранного снега, наледь около входной двери."
+}
+```
+
+###Пример ответа
+
+```
+HTTP/1.1 200 OK
+Connection: keep-alive
+Content-Length: 728
+Content-Type: application/json
+Date: Wed, 31 Jul 2019 11:10:42 GMT
+Server: nginx/1.17.0
+
+{
+    "top3_categories": [
+        [
+            "Дворовая территория", 
+            0.5
+        ], 
+        [
+            "Многоквартирные дома", 
+            0.4
+        ], 
+        [
+            "Дороги", 
+            0.1
+        ]
+    ], 
+    "top3_executors": [
+        [
+            "Администрация/префектура района/города/округа", 
+            0.6
+        ], 
+        [
+            "Управление благоустройства города", 
+            0.2
+        ], 
+        [
+            "Госжилинспекция", 
+            0.2
+        ]
+    ], 
+    "top3_themes": [
+        [
+            "Неубранная дворовая территория (мусор/снег)", 
+            0.4
+        ], 
+        [
+            "Прочие нарушения правил пользования жилыми помещениями", 
+            0.2
+        ], 
+        [
+            "Проблемы свободного проезда и прохода для транспорта и пешеходов", 
+            0.1
+        ]
+    ]
+}
+```
