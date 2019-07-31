@@ -39,6 +39,13 @@ https://rusvectores.org/ru/models/ (ruscorpora_upos_cbow_300_20_2019)
 
 Перейти в корневую директорию репозитория
 
+Скачать модель [ruscorpora_upos_cbow_300_20_2019 с rusvectores](http://vectors.nlpl.eu/repository/11/180.zip)
+и распаковать содержащиеся файлы в поддиректорию classification-appeals/models/180
+
+```
+mkdir -p classification-appeals/models/180; wget http://vectors.nlpl.eu/repository/11/180.zip -O tmp.zip; unzip -o -d classification-appeals/models/180 tmp.zip; rm -rf tmp.zip
+```
+
 Собрать и запустить
 ```
 docker-compose build
@@ -55,7 +62,11 @@ docker-compose down
 ## Примеры использования
 
 ### Программное решение
-![Alt Text](https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif)
+
+Работающее решение для тестирования находится по адресу http://104.238.128.209
+
+![Автоматический классификатор обращений граждан](classification-appeals-ada.jpg "Автоматический классификатор обращений граждан")
+
 
 ### API сервиса
 
