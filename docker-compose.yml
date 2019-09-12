@@ -10,7 +10,7 @@ services:
             - ./classification-appeals:/srv/www/classification-appeals
         expose:
           - 8001
-        command: "gunicorn -w 1 -b 0.0.0.0:8001 wsgi_app.appeals:app"
+        command: "gunicorn --timeout 9999999 -w 1 -b 0.0.0.0:8001 wsgi_app.appeals:app"
     nginx:
         restart: always
         image: nginx:latest
