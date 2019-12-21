@@ -15,7 +15,7 @@ services:
         restart: always
         image: nginx:latest
         ports:
-          - 80:8080
+          - 8888:8080
         volumes:
             - ./classification-appeals/wsgi_app/static:/srv/www/classification-appeals/wsgi_app/static
             - ./classification-appeals/logs:/srv/www/classification-appeals/logs

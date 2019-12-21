@@ -1,0 +1,5 @@
+{
+  "corpus": "input/NashDomRyazan-29-03-2019.csv",
+  "docs_count": 500,
+  "word2vec": "models/180/model.bin"
+}

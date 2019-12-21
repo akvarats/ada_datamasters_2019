@@ -12,7 +12,7 @@ class PredictorManager:
     @property
     def predictor(self):
         if self._predictor is None:
-            corpus_model = CorpusModel().load('models/md_717_180')
+            corpus_model = CorpusModel().load('models/ya_1221_180')
             predictor = get_morph_predictor()
 
             word2vec_model = get_word2vec_model(corpus_model.meta.get("word2vec"))
@@ -29,6 +29,7 @@ predictorManager = PredictorManager()
 def classify(text):
     prediction = predictorManager.predictor.predict(text)
     return {
+        'top3_ids': prediction.top3_predicted_ids,
         'top3_themes': prediction.top3_predicted_themes,
         'top3_categories': prediction.top3_predicted_categories,
         'top3_executors': prediction.top3_predicted_executors,

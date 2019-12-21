@@ -19,12 +19,14 @@
 
     <fieldset>
         <h1>Результаты классификации</h1>
-        <label for="theme">Тема - ключевые факты из текста обращения</label>
+        <label for="id">ID</label>
+        <textarea id="id" rows=3 v-model="topIds"></textarea>
+        <!-- <label for="theme">Тема - ключевые факты из текста обращения</label>
         <textarea id="theme" rows=3 v-model="topThemes"></textarea>
         <label for="category">Категория</label>
         <textarea id="category" rows=3 v-model="topCategories"></textarea>
         <label for="executor">Предполагаемый исполнитель</label>
-        <textarea id="executor" rows=3 v-model="topExecutors"></textarea>
+        <textarea id="executor" rows=3 v-model="topExecutors"></textarea> -->
     </fieldset>
 </div>
 <script>
@@ -36,7 +38,8 @@
             url: '/classify',
             topThemes: '',
             topCategories: '',
-            topExecutors: ''
+            topExecutors: '',
+            topIds: ""
         },
         methods: {
             sendAppealText: function () {
@@ -44,6 +47,7 @@
                 vm.topThemes = '';
                 vm.topCategories = '';
                 vm.topExecutors = '';
+                vm.topIds = "";
                 $.ajax({
                     type: "POST",
                     url: this.url,
@@ -53,7 +57,7 @@
 
                 })
                     .done(function (r) {
-                        var themes = [], categories = [], executors = [];
+                        var themes = [], categories = [], executors = [], ids = [];
                         for (let i = 0; i < r.top3_themes.length; i++) {
                             themes.push(r.top3_themes[i][0] + ' — ' + r.top3_themes[i][1]);
                         }
@@ -66,6 +70,10 @@
                             executors.push(r.top3_executors[i][0] + ' — ' + r.top3_executors[i][1]);
                         }
                         vm.topExecutors = executors.join(String.fromCharCode(13, 10));
+                        for (let i = 0; i < r.top3_ids.length; i++) {
+                            ids.push(r.top3_ids[i][0] + ' — ' + r.top3_ids[i][1]);
+                        }
+                        vm.topIds = ids.join(String.fromCharCode(13, 10));
                     })
                     .fail(function () {
                         alert("error");

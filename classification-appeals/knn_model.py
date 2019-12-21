@@ -17,6 +17,9 @@ class KNNPrediction(object):
         self._all_predicted_executors = []
         self._predicted_executor = []
 
+        self._all_predicted_ids = []
+        self._predicted_id = []
+
     # --------------------------------------------------------------------------------------------
     # Предсказания по категориям
     # --------------------------------------------------------------------------------------------
@@ -86,6 +89,29 @@ class KNNPrediction(object):
     def top3_predicted_themes(self):
         return self.all_predicted_themes[0:3] if self.all_predicted_themes else []
 
+    # --------------------------------------------------------------------------------------------
+    # Предсказания по темам
+    # --------------------------------------------------------------------------------------------
+    @property
+    def all_predicted_ids(self):
+        return self._all_predicted_ids
+
+    @all_predicted_ids.setter
+    def all_predicted_ids(self, value):
+        self._all_predicted_ids = value
+
+    @property
+    def predicted_id(self):
+        return self._predicted_id
+
+    @predicted_id.setter
+    def predicted_id(self, value):
+        self._predicted_id = value
+
+    @property
+    def top3_predicted_ids(self):
+        return self.all_predicted_ids[0:3] if self.all_predicted_ids else []
+
 
 class KNNModel(object):
     """ Основная модель классификации """
@@ -98,6 +124,7 @@ class KNNModel(object):
         self._knn_categories = None
         self._knn_themes = None
         self._knn_executors = None
+        self._knn_ids = None
 
         self._corpus_model = None
 
@@ -109,6 +136,9 @@ class KNNModel(object):
 
         self._executors = None
         self._targets_executors = None
+
+        self._ids = None
+        self._target_ids = None
 
     @property
     def corpus_model(self):
@@ -129,18 +159,23 @@ class KNNModel(object):
         :return:
         """
         self._corpus_model = corpus_model
-        self._prepare_categories()
-        self._prepare_themes()
-        self._prepare_executors()
+        # self._prepare_categories()
+        # self._prepare_themes()
+        # self._prepare_executors()
+        self._prepare_ids()
 
-        self._knn_categories = KNeighborsClassifier(n_neighbors=10, metric="precomputed")
-        self._knn_categories.fit(self.distances, self._targets_category)
 
-        self._knn_themes = KNeighborsClassifier(n_neighbors=10, metric="precomputed")
-        self._knn_themes.fit(self.distances, self._targets_theme)
+        # self._knn_categories = KNeighborsClassifier(n_neighbors=10, metric="precomputed")
+        # self._knn_categories.fit(self.distances, self._targets_category)
 
-        self._knn_executors = KNeighborsClassifier(n_neighbors=10, metric="precomputed")
-        self._knn_executors.fit(self.distances, self._targets_executors)
+        # self._knn_themes = KNeighborsClassifier(n_neighbors=10, metric="precomputed")
+        # self._knn_themes.fit(self.distances, self._targets_theme)
+
+        # self._knn_executors = KNeighborsClassifier(n_neighbors=10, metric="precomputed")
+        # self._knn_executors.fit(self.distances, self._targets_executors)
+
+        self._knn_ids = KNeighborsClassifier(n_neighbors=10, metric="precomputed")
+        self._knn_ids.fit(self.distances, self._target_ids)
 
     def predict(self, text):
         """
@@ -152,52 +187,68 @@ class KNNModel(object):
 
         prediction = KNNPrediction()
 
-        # Выполняем предсказание категории
-        # ---------------------------------------------------------------------------
-        prediction.predicted_category = self._category_name_by_index(self._knn_categories.predict([text_distances]))
+        # # Выполняем предсказание категории
+        # # ---------------------------------------------------------------------------
+        # prediction.predicted_category = self._category_name_by_index(self._knn_categories.predict([text_distances]))
 
-        predicted_categories_proba = self._knn_categories.predict_proba([text_distances])
+        # predicted_categories_proba = self._knn_categories.predict_proba([text_distances])
 
-        for i in range(0, len(predicted_categories_proba[0])):
-            if predicted_categories_proba[0][i] > 0.0001:
-                prediction.all_predicted_categories.append((
-                    self._category_name_by_index(i), 
-                    predicted_categories_proba[0][i]
-                ))
+        # for i in range(0, len(predicted_categories_proba[0])):
+        #     if predicted_categories_proba[0][i] > 0.0001:
+        #         prediction.all_predicted_categories.append((
+        #             self._category_name_by_index(i), 
+        #             predicted_categories_proba[0][i]
+        #         ))
 
-        prediction.all_predicted_categories = sorted(prediction.all_predicted_categories, key=lambda x: x[1], reverse=True)
+        # prediction.all_predicted_categories = sorted(prediction.all_predicted_categories, key=lambda x: x[1], reverse=True)
 
-        # Выполняем предсказание темы
-        # ---------------------------------------------------------------------------
-        prediction.predicted_theme = self._theme_name_by_index(self._knn_themes.predict([text_distances]))
-        prediction.all_predicted_themes = []
+        # # Выполняем предсказание темы
+        # # ---------------------------------------------------------------------------
+        # prediction.predicted_theme = self._theme_name_by_index(self._knn_themes.predict([text_distances]))
+        # prediction.all_predicted_themes = []
 
-        predicted_themes_proba = self._knn_themes.predict_proba([text_distances])
+        # predicted_themes_proba = self._knn_themes.predict_proba([text_distances])
 
-        for i in range(0, len(predicted_themes_proba[0])):
-            if predicted_themes_proba[0][i] > 0.0001:
-                prediction.all_predicted_themes.append((
-                    self._theme_name_by_index(i), 
-                    predicted_themes_proba[0][i]
-                ))
+        # for i in range(0, len(predicted_themes_proba[0])):
+        #     if predicted_themes_proba[0][i] > 0.0001:
+        #         prediction.all_predicted_themes.append((
+        #             self._theme_name_by_index(i), 
+        #             predicted_themes_proba[0][i]
+        #         ))
 
-        prediction.all_predicted_themes = sorted(prediction.all_predicted_themes, key=lambda x: x[1], reverse=True)
+        # prediction.all_predicted_themes = sorted(prediction.all_predicted_themes, key=lambda x: x[1], reverse=True)
+
+        # # Выполняем предсказание исполнителя
+        # # ---------------------------------------------------------------------------
+        # prediction.predicted_executor = self._executor_name_by_index(self._knn_executors.predict([text_distances]))
+        # prediction.all_predicted_executors = []
+
+        # predicted_executor_proba = self._knn_executors.predict_proba([text_distances])
+
+        # for i in range(0, len(predicted_executor_proba[0])):
+        #     if predicted_executor_proba[0][i] > 0.0001:
+        #         prediction.all_predicted_executors.append((
+        #             self._executor_name_by_index(i), 
+        #             predicted_executor_proba[0][i]
+        #         ))
+
+        # prediction.all_predicted_executors = sorted(prediction.all_predicted_executors, key=lambda x: x[1], reverse=True)
 
         # Выполняем предсказание исполнителя
         # ---------------------------------------------------------------------------
-        prediction.predicted_executor = self._executor_name_by_index(self._knn_executors.predict([text_distances]))
-        prediction.all_predicted_executors = []
+        prediction.predicted_id = self._id_name_by_index(self._knn_ids.predict([text_distances]))
+        prediction.all_predicted_ids = []
 
-        predicted_executor_proba = self._knn_executors.predict_proba([text_distances])
+        predicted_id_proba = self._knn_ids.predict_proba([text_distances])
 
-        for i in range(0, len(predicted_executor_proba[0])):
-            if predicted_executor_proba[0][i] > 0.0001:
-                prediction.all_predicted_executors.append((
-                    self._executor_name_by_index(i), 
-                    predicted_executor_proba[0][i]
+        for i in range(0, len(predicted_id_proba[0])):
+            if predicted_id_proba[0][i] > 0.0001:
+                prediction.all_predicted_ids.append((
+                    self._id_name_by_index(i), 
+                    predicted_id_proba[0][i]
                 ))
 
-        prediction.all_predicted_executors = sorted(prediction.all_predicted_executors, key=lambda x: x[1], reverse=True)
+        prediction.all_predicted_ids = sorted(prediction.all_predicted_ids, key=lambda x: x[1], reverse=True)
 
         return prediction
 
@@ -238,6 +289,18 @@ class KNNModel(object):
                 self._executors[executor] = executor_index
             self._targets_executors.append(self._executors[executor])
 
+    def _prepare_ids(self):
+        """ """
+        self._ids = OrderedDict()
+        self._target_ids = []
+
+        for row in self.corpus:
+            id = normalized_executor(row["id"])
+            if id not in self._ids:
+                id_index = len(self._ids)
+                self._ids[id] = id_index
+            self._target_ids.append(self._ids[id])
+
     def _category_name_by_index(self, category_index):
         result = None
 
@@ -262,6 +325,15 @@ class KNNModel(object):
         for ename, eindex in self._executors.items():
             if eindex == executor_index:
                 result = ename
+                break
+        return result
+
+    def _id_name_by_index(self, id_index):
+        result = None
+
+        for iname, iindex in self._ids.items():
+            if iindex == id_index:
+                result = iname
                 break
         return result
         
